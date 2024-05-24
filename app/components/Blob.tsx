@@ -4,56 +4,96 @@ import * as THREE from "three";
 import vertexShader from "../shaders/blob/vertex.glsl";
 import fragmentShader from "../shaders/blob/fragment.glsl";
 import CustomShaderMaterial from "three-custom-shader-material";
-import { useMemo, useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 const Blob = () => {
   const blob = useRef();
   const blobMat = useRef();
-  console.log(blob);
 
-  const uniforms = useMemo(() => ({
-    uTime: {
-      value: 0,
-    },
-    uTimeFrequency: {
-      value: 0.4,
-    },
-    uStrength: {
-      value: 0.3,
-    },
-    uPositionFrequency: {
-      value: 0.5,
-    },
-    uWarpPositionFrequency: {
-      value: 1,
-    },
-    uWarpTimeFrequency: {
-      value: 0.6,
-    },
-    uWarpStrength: {
-      value: 0.25,
-    },
-  }));
+  let hoverActive = false;
+  let channelOne = 0;
+
+  const onHover = () => {
+    hoverActive = true;
+    console.log(hoverActive);
+  };
+
+  console.log(blob);
+  const onLeave = () => {
+    hoverActive = false;
+    console.log(hoverActive);
+  };
+
+  const uniforms = useMemo(
+    () => ({
+      uTime: {
+        value: 0,
+      },
+      uTimeFrequency: {
+        value: 0.4,
+      },
+      uStrength: {
+        value: 0.3,
+      },
+      uPositionFrequency: {
+        value: 0.5,
+      },
+      uWarpPositionFrequency: {
+        value: 1.5,
+      },
+      uWarpTimeFrequency: {
+        value: 0.6,
+      },
+      uWarpStrength: {
+        value: 0.25,
+      },
+      uColorChannelOne: {
+        value: 1.0,
+      },
+      uMousePosition: {
+        value: new THREE.Vector2(0, 0),
+      },
+    }),
+    []
+  );
 
   useFrame((state, delta) => {
     blobMat.current.uniforms.uTime.value += delta;
+    blobMat.current.uniforms.uMousePosition.value.x = state.mouse.x;
+    blobMat.current.uniforms.uMousePosition.value.y = state.mouse.y;
+
+    if (hoverActive && blobMat.current.uniforms.uColorChannelOne.value > 0) {
+      blobMat.current.uniforms.uColorChannelOne.value -= 0.005;
+    }
+
+    if (!hoverActive && blobMat.current.uniforms.uColorChannelOne.value < 1) {
+      blobMat.current.uniforms.uColorChannelOne.value += 0.005;
+    }
   });
+
   return (
     <>
-      <mesh ref={blob} position={[0, 0, 0]}>
+      <mesh
+        ref={blob}
+        position={[0, 0, 0]}
+        onPointerEnter={onHover}
+        onPointerLeave={onLeave}
+        receiveShadow
+        castShadow
+      >
         <icosahedronGeometry args={[1, 32]} computeTangents={true} />
 
         <CustomShaderMaterial
           ref={blobMat}
           baseMaterial={THREE.MeshPhysicalMaterial}
           vertexShader={vertexShader}
-          //   fragmentShader={fragmentShader}
+          fragmentShader={fragmentShader}
           silent
-          color={0xffffff}
           uniforms={uniforms}
           metalness={0.2}
           roughness={0}
           ior={1.5}
+          flatShading={true}
         />
       </mesh>
     </>
