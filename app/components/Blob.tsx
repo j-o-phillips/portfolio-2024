@@ -4,21 +4,28 @@ import * as THREE from "three";
 import vertexShader from "../shaders/blob/vertex.glsl";
 import fragmentShader from "../shaders/blob/fragment.glsl";
 import CustomShaderMaterial from "three-custom-shader-material";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
+import { mergeVertices } from "three/addons/utils/BufferGeometryUtils.js";
 const Blob = () => {
   const blob = useRef();
   const blobMat = useRef();
+  const blobGeometry = useRef();
 
   let hoverActive = false;
   let channelOne = 0;
+
+  useEffect(() => {
+    blobGeometry.current = mergeVertices(blobGeometry.current);
+    blobGeometry.current.computeTangents();
+    console.log(blobGeometry);
+  }, []);
 
   const onHover = () => {
     hoverActive = true;
     console.log(hoverActive);
   };
 
-  console.log(blob);
   const onLeave = () => {
     hoverActive = false;
     console.log(hoverActive);
@@ -81,7 +88,7 @@ const Blob = () => {
         receiveShadow
         castShadow
       >
-        <icosahedronGeometry args={[1, 32]} computeTangents={true} />
+        <icosahedronGeometry args={[1, 32]} ref={blobGeometry} />
 
         <CustomShaderMaterial
           ref={blobMat}

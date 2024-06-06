@@ -4,13 +4,11 @@ import { Canvas } from "@react-three/fiber";
 
 import Blob from "./components/Blob";
 import { Environment, OrbitControls } from "@react-three/drei";
-import LandingOverlay from "./components/LandingOverlay";
 
 export default function Home() {
   return (
     <>
       <div className="h-screen">
-        <LandingOverlay />
         <Canvas
           camera={{
             position: [0, 0, 7],

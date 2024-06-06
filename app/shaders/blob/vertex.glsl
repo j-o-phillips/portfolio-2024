@@ -104,6 +104,8 @@ uniform float uWarpPositionFrequency;
 uniform float uWarpTimeFrequency;
 uniform float uWarpStrength;
 
+attribute vec4 tangent;
+
 float getWobble(vec3 position) {
     vec3 warpedPosition = position;
     warpedPosition += simplexNoise4d(vec4(
@@ -118,10 +120,25 @@ float getWobble(vec3 position) {
 }
 
 void main() {
-    
-    float shift = 0.05;
+  
+   vec3 biTangent = cross(normal, tangent.xyz);
 
-  float wobble = getWobble(csm_Position);
-  csm_Position += wobble * normal;
+    //neigbours positions
+    float shift = 0.05;
+    vec3 positionA = csm_Position + tangent.xyz * shift;
+    vec3 positionB = csm_Position + biTangent * shift;
+
+    //wobble
+    float wobble = getWobble(csm_Position);
+    csm_Position += wobble * normal;
+    positionA += getWobble(positionA) * normal;
+    positionB += getWobble(positionB) * normal;
+
+    //compute normal
+    vec3 toA = normalize(positionA - csm_Position);
+    vec3 toB = normalize(positionB - csm_Position);
+    csm_Normal = cross(toA, toB);
+    
+ 
 }
 
